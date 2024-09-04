@@ -1,22 +1,36 @@
-install:
-	pip install --upgrade pip &&\
-		pip install -r requirements.txt
+# Variables
+PYTHON := python3
+VENV := venv
+SRC_DIR := ../John-Coogan-Week5mini/mylib
+TEST_DIR := ../John-Coogan-Week5mini
+REQUIREMENTS := requirements.txt
 
-test:
-	python -m pytest -vv --cov=main --cov=mylib test_*.py 
+# Phony targets
+.PHONY: all venv install test format lint clean
 
-format:	
-	black *.py 
+# Default target
+all: venv install test format lint
 
+# Create a virtual environment
+venv:
+	$(PYTHON) -m venv $(VENV)
+
+# Install project dependencies
+install: venv
+	$(VENV)/bin/pip install --upgrade pip -r  $(REQUIREMENTS)
+
+# Run unit tests
+test: 
+	$(VENV)/bin/pytest $(TEST_DIR)
+
+# Format code with Black
+format:
+	$(VENV)/bin/black $(SRC_DIR)
+
+# Lint code with Ruff
 lint:
-	pylint --disable=R,C --ignore-patterns=test_.*?py *.py
+	$(VENV)/bin/ruff check $(SRC_DIR)
 
-container-lint:
-	docker run --rm -i hadolint/hadolint < Dockerfile
-
-refactor: format lint
-
-deploy:
-	#deploy goes here
-		
-all: install lint test format deploy
+# Clean up generated files and virtual environment
+clean:
+	rm -rf $(VENV) __pycache__ .pytest_cache
